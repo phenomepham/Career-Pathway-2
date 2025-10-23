@@ -16,9 +16,8 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useMemo, useRef, useState, useEffect } = React; // 🔵 NEW: added useEffect
+    const { useMemo, useRef, useState, useEffect } = React;
 
-    // 🔵 NEW: Storage helpers
     const STORAGE_KEY = "wioa_pathways_v1";
     const loadRecords = () => {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
@@ -135,7 +134,10 @@
       const [compact, setCompact] = useState(false);
       const [jsonText, setJsonText] = useState("");
 
-      // 🔵 NEW: Records state
+      // NEW: print pathway only toggle
+      const [printPathwayOnly, setPrintPathwayOnly] = useState(false);
+
+      // Records state
       const [records, setRecords] = useState([]);
       const [selectedId, setSelectedId] = useState("");
 
@@ -224,7 +226,7 @@
         }
       }
 
-      // 🔵 NEW: Save/Load/Delete to localStorage
+      // Save/Load/Delete to localStorage
       function saveToLibrary() {
         const id = selectedId || crypto.randomUUID();
         const name = participant.name?.trim() || "Unnamed";
@@ -260,7 +262,7 @@
       }
 
       return (
-        <div className={`min-h-screen w-full ${compact ? "p-2" : "p-6"}`}>
+        <div className={`min-h-screen w-full ${compact ? "p-2" : "p-6"} ${printPathwayOnly ? "print-pathway-only" : ""}`}>
           <div className="mx-auto max-w-7xl">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
@@ -275,6 +277,18 @@
                   <input type="checkbox" className="h-4 w-4" checked={compact} onChange={e => setCompact(e.target.checked)} />
                   Compact
                 </label>
+
+                {/* NEW: Pathway-only print toggle */}
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={printPathwayOnly}
+                    onChange={e => setPrintPathwayOnly(e.target.checked)}
+                  />
+                  Pathway-only print
+                </label>
+
                 <button onClick={exportJSON} className="px-3 py-2 text-sm rounded-md border bg-white hover:bg-gray-50">Export JSON</button>
                 <button onClick={() => window.print()} className="px-3 py-2 text-sm rounded-md border bg-white hover:bg-gray-50">Print</button>
               </div>
@@ -417,7 +431,6 @@
                     </div>
                   </div>
 
-                  {/* 🔵 NEW: Library (localStorage) */}
                   <SectionTitle emoji="📚">Library (saved pathways)</SectionTitle>
                   <div className="space-y-2">
                     <div className="flex gap-2 items-center">
@@ -451,7 +464,7 @@
 
               {/* Right: Map */}
               <div className="lg:col-span-2 print:col-span-2">
-                <div className={`bg-white rounded-xl border shadow-sm ${compact ? "p-3" : "p-6"}`}>
+                <div className={`bg-white rounded-xl border shadow-sm ${compact ? "p-3" : "p-6"} print-target-pathway`}>
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="text-xl font-semibold">Career Pathway</div>
@@ -541,6 +554,24 @@
               .print\\:col-span-2 { grid-column: span 2 / span 2; }
               .print\\:col-span-1 { grid-column: span 1 / span 1; }
             }
+
+            /* ===== Pathway-only print mode ===== */
+            @media print {
+              .print-pathway-only * {
+                visibility: hidden !important;
+              }
+              .print-pathway-only .print-target-pathway,
+              .print-pathway-only .print-target-pathway * {
+                visibility: visible !important;
+              }
+              .print-pathway-only .print-target-pathway {
+                position: absolute !important;
+                inset: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+              }
+            }
           `}</style>
         </div>
       );
@@ -551,3 +582,4 @@
   </script>
 </body>
 </html>
+
